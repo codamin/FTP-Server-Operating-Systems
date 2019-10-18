@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/amin/Desktop/p1-os/server/main.c
+server.h
+/home/amin/Desktop/p1-os/server/server.h
+
+/home/amin/Desktop/p1-os/server/server.c
+server.h
+/home/amin/Desktop/p1-os/server/server.h
+
+/home/amin/Desktop/p1-os/server/server.h
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+errno.h
+-
+unistd.h
+-
+arpa/inet.h
+-
+sys/types.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+sys/time.h
+-
+fcntl.h
+/home/amin/Desktop/p1-os/server/fcntl.h
+

@@ -31,14 +31,48 @@ void get_file(char* file_name, int read_fd) {
 }
 
 
-void send_file(char* file_name, int file_name_length, int write_fd) {
+// void send_file(char* file_name, int file_name_length, int write_fd) {
 
-    int full_size = strlen(FILE_DIR) + file_name_length + 1;
+//     int full_size = strlen(FILE_DIR) + file_name_length + 1;
+//     char* full_file_name = (char*)malloc(full_size);
+//     for(int i = 0; i < strlen(FILE_DIR); i++) {
+//         full_file_name[i] = FILE_DIR[i];
+//     }
+//     for(int i = 0; i < file_name_length ; i++) {
+//         full_file_name[i + strlen(FILE_DIR)] = file_name[i];
+//     }
+
+//     full_file_name[full_size] = '\0';
+
+//     int read_fd = open(full_file_name, O_RDONLY);
+//     if (read_fd < 0) {
+//         write(write_fd, "N", 1);
+//         write(1, "requested file not found\n", 25);
+//         return;
+//     }
+    
+//     write(write_fd, "Y", 1);
+//     write(1, "sending file...\n", 16);
+//     while (1) {
+//         char buf[FILE_CHUNK_SIZE] = {0};
+//         int nbytes = read(read_fd, buf, FILE_CHUNK_SIZE);
+//         if(nbytes > 0) {
+//             write(write_fd, buf, nbytes);
+//         }
+//         if (nbytes < FILE_CHUNK_SIZE)
+//             break;
+//     }
+//     write(1, "sending finished...\n", 20);
+// }
+
+void upload(int sock, char* file_name) {
+
+    int full_size = strlen(FILE_DIR) + strlen(file_name) + 1;
     char* full_file_name = (char*)malloc(full_size);
     for(int i = 0; i < strlen(FILE_DIR); i++) {
         full_file_name[i] = FILE_DIR[i];
     }
-    for(int i = 0; i < file_name_length ; i++) {
+    for(int i = 0; i < strlen(file_name) ; i++) {
         full_file_name[i + strlen(FILE_DIR)] = file_name[i];
     }
 
@@ -46,18 +80,18 @@ void send_file(char* file_name, int file_name_length, int write_fd) {
 
     int read_fd = open(full_file_name, O_RDONLY);
     if (read_fd < 0) {
-        write(write_fd, "N", 1);
+        write(sock, "N", 1);
         write(1, "requested file not found\n", 25);
         return;
     }
     
-    write(write_fd, "Y", 1);
+    write(sock, "Y", 1);
     write(1, "sending file...\n", 16);
     while (1) {
         char buf[FILE_CHUNK_SIZE] = {0};
         int nbytes = read(read_fd, buf, FILE_CHUNK_SIZE);
         if(nbytes > 0) {
-            write(write_fd, buf, nbytes);
+            write(sock, buf, nbytes);
         }
         if (nbytes < FILE_CHUNK_SIZE)
             break;

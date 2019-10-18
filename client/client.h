@@ -17,7 +17,7 @@
 #define MAX_REQUEST_SIZE 100
 #define MAX_OWNED_FILES  10
 #define FILE_CHUNK_SIZE  256
-#define FILE_DIR         "/home/amin/Desktop/P1/client/files/"
+#define FILE_DIR         "/home/amin/Desktop/p1-os/client/files/"
 #define NOT_FOUND        "file not found"
 
 #endif

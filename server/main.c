@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
                     }
 
                     if(strcmp(request, "download") == 0) {
-                        send_file(file_name, strlen(file_name), clients[i]);
+                        upload(clients[i], file_name);
                     }
                     else if(strcmp(request, "upload") == 0) {
                         get_file(clients[i]);

@@ -20,7 +20,7 @@
 #define MAX_FILES           50
 #define NOT_FOUND           "file not found" 
 #define FILE_CHUNK_SIZE     256
-#define FILE_DIR            "/home/amin/Desktop/P1/server/files/"
+#define FILE_DIR            "/home/amin/Desktop/p1-os/server/files/"
 
 int clients[MAX_CLIENTS];
 char* files[MAX_FILES];
