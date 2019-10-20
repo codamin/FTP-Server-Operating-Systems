@@ -46,7 +46,7 @@ void heart_beat(int sock, struct sockaddr_in hb_addr) {
                 perror("sendto");
                 exit(1);
             }
-            printf("beat sent...\n");
+            printf("doop doop...\n");
             IsHeartBeating = false;
             alarm(1);
         }

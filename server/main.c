@@ -37,9 +37,9 @@ int main(int argc, char* argv[]) {
     int hb_sock;
 
     if ((pid = fork()) == 0) {
-        // close (listen_socket);
-        // hb_sock = create_heart_beat_socket(htons(10000), &hb_addr);
-        // heart_beat(hb_sock, hb_addr);
+        close (listen_socket);
+        hb_sock = create_heart_beat_socket(htons(10000), &hb_addr);
+        heart_beat(hb_sock, hb_addr);
     }
     else {
         fd_set readfds;

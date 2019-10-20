@@ -17,21 +17,19 @@ int init_heart_beat_listen_socket(int hb_port) {
         perror("setsockopt (SO_BROADCAST)");
         exit(EXIT_FAILURE);
     }
-
-    struct timeval timeout={2, 0}; //set timeout for 2 seconds
-    /* set receive UDP message timeout */
-
+    struct timeval timeout={2, 0};
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(struct timeval));
     return sock;
 }
 
-int read_hb_msg(int sock, struct sockaddr_in hb_addr, int* server_listen_port, clock_t* start) {
+int read_hb_msg(int sock, struct sockaddr_in hb_addr, int* server_listen_port) {
 
-    clock_gettime(0, start);
     int nbytes, len;
     char buf[MAX_HB_MSG_SIZE];
     if ((nbytes = recvfrom(sock, buf, MAX_HB_MSG_SIZE, 0 ,(struct sockaddr *) &hb_addr, &len)) < 0)
         return -1;
+    char msg[] = "******************************************Server Found***********************************************";
+    write(1, msg, sizeof(msg));
     *server_listen_port = atoi(buf);
     return 1;
 }
@@ -100,4 +98,42 @@ void send_request_to_server(int sock, char* buf, int nbytes, char* owned_files[]
     }
     else
         write(1, "invalid request. try again\n", sizeof("invalid request. try again\n"));
+}
+
+int create_broadcast_socket(int bc_port, struct sockaddr_in* bc_addr) {
+
+    int hb_sock;
+    if ((hb_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("creating heart beat socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    bc_addr->sin_family = AF_INET;
+    bc_addr->sin_addr.s_addr = INADDR_ANY;
+    bc_addr->sin_port = htons(bc_port);
+
+    int reuse = 1;
+    if (setsockopt(hb_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
+    int broadcast = 1;
+    if (setsockopt(hb_sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
+        perror("setsockopt (SO_BROADCAST)");
+        exit(1);
+    }
+
+    bind(hb_sock, (struct sockaddr*)bc_addr, sizeof(*bc_addr));
+    return hb_sock;
+}
+
+void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name) {
+
+    int nbytes;
+    if ((nbytes = sendto(bc_sock, file_name, strlen(file_name), 0, (struct sockaddr *)&bc_addr, sizeof bc_addr)) < 0) {
+        perror("sendto");
+        exit(1);
+    }
+    else {
+        printf("msg broad casted......\n");
+    }
 }
