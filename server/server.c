@@ -1,102 +1,79 @@
 #include "server.h"
 
-void get_file(char* file_name, int read_fd) {
+int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr) {
 
-    int nbytes;
-    char recvBuf[256];
-    int full_size = strlen(FILE_DIR) + strlen(file_name) + 1;
-    char* full_file_name = (char*)malloc(full_size);
-    for(int i = 0; i < strlen(FILE_DIR); i++) {
-        full_file_name[i] = FILE_DIR[i];
-    }
-    for(int i = 0; i < strlen(file_name); i++) {
-        full_file_name[i + strlen(FILE_DIR)] = file_name[i];
-    }
-    full_file_name[full_size - 1] = '\0';
-    int fd = open(full_file_name, O_CREAT | O_WRONLY);
-
-    while (1) {
-        nbytes = read(read_fd, recvBuf, FILE_CHUNK_SIZE);
-        if (nbytes > 0)
-            write(fd, recvBuf, nbytes);
-        if (nbytes < FILE_CHUNK_SIZE)
-            break;
+    int hb_sock;
+    if ((hb_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("creating heart beat socket failed");
+        exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < MAX_FILES; i++)
-        if (files[i] == 0) {
-            files[i] = file_name;
-            break;
-        }
+    hb_addr->sin_family = AF_INET;
+    hb_addr->sin_addr.s_addr = INADDR_ANY;
+    hb_addr->sin_port = htons(hb_port);
+
+    int reuse = 1;
+    if (setsockopt(hb_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
+    int broadcast = 1;
+    if (setsockopt(hb_sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
+        perror("setsockopt (SO_BROADCAST)");
+        exit(1);
+    }
+
+    bind(hb_sock, (struct sockaddr*)hb_addr, sizeof(*hb_addr));
+    return hb_sock;
 }
 
+void beat() {
+    IsHeartBeating = true;
+}
 
-// void send_file(char* file_name, int file_name_length, int write_fd) {
+void heart_beat(int sock, struct sockaddr_in hb_addr) {
 
-//     int full_size = strlen(FILE_DIR) + file_name_length + 1;
-//     char* full_file_name = (char*)malloc(full_size);
-//     for(int i = 0; i < strlen(FILE_DIR); i++) {
-//         full_file_name[i] = FILE_DIR[i];
-//     }
-//     for(int i = 0; i < file_name_length ; i++) {
-//         full_file_name[i + strlen(FILE_DIR)] = file_name[i];
-//     }
+    int nbytes;
+    char* char_port = "6000";
 
-//     full_file_name[full_size] = '\0';
+    signal(SIGALRM, beat);
+    alarm(1);
 
-//     int read_fd = open(full_file_name, O_RDONLY);
-//     if (read_fd < 0) {
-//         write(write_fd, "N", 1);
-//         write(1, "requested file not found\n", 25);
-//         return;
-//     }
-    
-//     write(write_fd, "Y", 1);
-//     write(1, "sending file...\n", 16);
-//     while (1) {
-//         char buf[FILE_CHUNK_SIZE] = {0};
-//         int nbytes = read(read_fd, buf, FILE_CHUNK_SIZE);
-//         if(nbytes > 0) {
-//             write(write_fd, buf, nbytes);
-//         }
-//         if (nbytes < FILE_CHUNK_SIZE)
-//             break;
-//     }
-//     write(1, "sending finished...\n", 20);
-// }
-
-void upload(int sock, char* file_name) {
-
-    int full_size = strlen(FILE_DIR) + strlen(file_name) + 1;
-    char* full_file_name = (char*)malloc(full_size);
-    for(int i = 0; i < strlen(FILE_DIR); i++) {
-        full_file_name[i] = FILE_DIR[i];
-    }
-    for(int i = 0; i < strlen(file_name) ; i++) {
-        full_file_name[i + strlen(FILE_DIR)] = file_name[i];
-    }
-
-    full_file_name[full_size] = '\0';
-
-    int read_fd = open(full_file_name, O_RDONLY);
-    if (read_fd < 0) {
-        write(sock, "N", 1);
-        write(1, "requested file not found\n", 25);
-        return;
-    }
-    
-    write(sock, "Y", 1);
-    write(1, "sending file...\n", 16);
-    while (1) {
-        char buf[FILE_CHUNK_SIZE] = {0};
-        int nbytes = read(read_fd, buf, FILE_CHUNK_SIZE);
-        if(nbytes > 0) {
-            write(sock, buf, nbytes);
+    for (;;) {
+        if (IsHeartBeating) {
+//            costum_itoa(LISTEN_PORT, &char_port);
+            if ((nbytes = sendto(sock, char_port, strlen(char_port), 0, (struct sockaddr *)&hb_addr, sizeof hb_addr)) < 0)
+            {
+                perror("sendto");
+                exit(1);
+            }
+            printf("beat sent...\n");
+            IsHeartBeating = false;
+            alarm(1);
         }
-        if (nbytes < FILE_CHUNK_SIZE)
-            break;
     }
-    write(1, "sending finished...\n", 20);
+}
+
+int server_hand_shake(int sock, char* full_file_name, int mode) {
+
+    // 0 for upload ----> must exist ---> O_RDONLY
+    // 1 for download --> just open ---> O_CREAT
+    int fd;
+    if (mode)
+        fd = open(full_file_name, O_CREAT | O_TRUNC | O_WRONLY, 777);
+    else if (!mode)
+        fd = open(full_file_name, O_RDONLY);
+
+    if (fd < 0) {
+        write(sock, "NO", 2);
+        write(1,"file not found\n", 25);
+        return -1;
+    }
+    printf("file opened\n");
+    if (mode)
+        write(sock, "YU", 2);
+    else
+        write(sock, "YD", 2);
+    return fd;
 }
 
 int create_new_connection(int listen_socket) {
@@ -120,28 +97,3 @@ int create_new_connection(int listen_socket) {
     write(1, "\n", sizeof("\n"));
     return new_socket;
 }
-
-// void process_new_request(fd_set* readfds) {
-
-//     write(1, "client requested\n", 17);
-//     for (int i = 0; i < MAX_CLIENTS; i++) {
-//         int sd = clients[i];
-
-//         if (FD_ISSET(sd, readfds)) {
-//             char buf[20];
-//             read(sd, buf, 1024);
-//             char request[3];
-//             parse_request(buf, request);
-
-//             if(request[0] == "download") {
-//                 if (send_file(request[1], clients[i]) == -1)
-//                     send(sd, NOT_FOUND, sizeof(NOT_FOUND), 0);
-//             }
-
-//             else if(request[0] == "upload") {
-
-//             }
-        
-//         }
-//     }
-// }

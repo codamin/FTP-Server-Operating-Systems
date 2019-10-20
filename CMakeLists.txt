@@ -9,9 +9,11 @@ include_directories(server)
 add_executable(client
         client/client.c
         client/client.h
-        client/main.c)
+        client/main.c
+        tools/tools.c)
 
 add_executable(server
         server/main.c
         server/server.c
-        server/server.h)
+        server/server.h
+        tools/tools.c)

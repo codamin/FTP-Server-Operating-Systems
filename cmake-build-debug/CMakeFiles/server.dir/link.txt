@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/server.dir/server/main.c.o CMakeFiles/server.dir/server/server.c.o  -o server 
+/usr/bin/cc -g   CMakeFiles/server.dir/server/main.c.o CMakeFiles/server.dir/server/server.c.o CMakeFiles/server.dir/tools/tools.c.o  -o server 

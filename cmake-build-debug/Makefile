@@ -244,6 +244,36 @@ server/server.c.s:
 	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/server/server.c.s
 .PHONY : server/server.c.s
 
+tools/tools.o: tools/tools.c.o
+
+.PHONY : tools/tools.o
+
+# target to build an object file
+tools/tools.c.o:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tools/tools.c.o
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tools/tools.c.o
+.PHONY : tools/tools.c.o
+
+tools/tools.i: tools/tools.c.i
+
+.PHONY : tools/tools.i
+
+# target to preprocess a source file
+tools/tools.c.i:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tools/tools.c.i
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tools/tools.c.i
+.PHONY : tools/tools.c.i
+
+tools/tools.s: tools/tools.c.s
+
+.PHONY : tools/tools.s
+
+# target to generate assembly for a file
+tools/tools.c.s:
+	$(MAKE) -f CMakeFiles/client.dir/build.make CMakeFiles/client.dir/tools/tools.c.s
+	$(MAKE) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/tools/tools.c.s
+.PHONY : tools/tools.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -266,6 +296,9 @@ help:
 	@echo "... server/server.o"
 	@echo "... server/server.i"
 	@echo "... server/server.s"
+	@echo "... tools/tools.o"
+	@echo "... tools/tools.i"
+	@echo "... tools/tools.s"
 .PHONY : help
 
 

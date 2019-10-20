@@ -2,25 +2,14 @@
 
 void process_new_request(int socket, fd_set *ptr);
 
-send_hearbeat() {
-
-    int heart_beat_socket;
-    if((heart_beat_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("heartbeat_socket failed");
-        exit(EXIT_FAILURE);
-    };      
-}
-
 int main(int argc, char* argv[]) {
 
-    int opt = 1;
-
-    struct sockaddr_in server_addr, client_addr;
+    struct sockaddr_in server_addr, client_addr, hb_addr;
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = 8080;
-    
+    server_addr.sin_port = htons(6000);
+
     int listen_socket;
 
     if ((listen_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -28,86 +17,112 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {   
-        perror("setsockopt");   
-        exit(EXIT_FAILURE);   
-    }   
-
-    if (bind(listen_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) { 
-        perror("\nBinding error...\n"); 
-        exit(EXIT_FAILURE); 
+    int reuse = 1;
+    if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
     }
 
-    if (listen(listen_socket, 5) < 0) { 
-        perror("Listen error..."); 
-        exit(EXIT_FAILURE);     
+    if (bind(listen_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("\nBinding error...\n");
+        exit(EXIT_FAILURE);
     }
 
-    fd_set readfds;
+    if (listen(listen_socket, 5) < 0) {
+        perror("Listen error...");
+        exit(EXIT_FAILURE);
+    }
+    int pid;
+//    int hb_port = atoi(argv[1]);
+    int hb_sock;
 
-    for(int i = 0; i < MAX_CLIENTS; i++)
-        clients[i] = 0;
+    if ((pid = fork()) == 0) {
+        // close (listen_socket);
+        // hb_sock = create_heart_beat_socket(htons(10000), &hb_addr);
+        // heart_beat(hb_sock, hb_addr);
+    }
+    else {
+        fd_set readfds;
 
-    while (1) {
+        for(int i = 0; i < MAX_CLIENTS; i++)
+            clients[i] = 0;
 
-        FD_ZERO(&readfds);
-        FD_SET(listen_socket, &readfds);
+        while (1) {
 
-        int max_sd = listen_socket;
-        for (int i = 0 ; i < MAX_CLIENTS ; i++) {
-           int sd = clients[i];
-           if(sd > 0)
-               FD_SET(sd , &readfds);
-           if(sd > max_sd)
-               max_sd = sd;
-        }
+            FD_ZERO(&readfds);
+            FD_SET(listen_socket, &readfds);
 
-        int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-        
-        if ((activity < 0) && (errno!=EINTR)) {
-            char msg[] = "select failed";
-            write(1, msg, sizeof(msg));
-        }
-        
-        int new_client;
-        if (FD_ISSET(listen_socket, &readfds))
-            new_client = create_new_connection(listen_socket);
+            int max_sd = listen_socket;
+            for (int i = 0 ; i < MAX_CLIENTS ; i++) {
+               int sd = clients[i];
+               if(sd > 0)
+                   FD_SET(sd , &readfds);
+               if(sd > max_sd)
+                   max_sd = sd;
+            }
 
-        // process_new_request(listen_socket, &readfds);
+            int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
 
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-            int sd = clients[i];
+            if ((activity < 0) && (errno!=EINTR)) {
+                char msg[] = "select failed";-
+                write(1, msg, sizeof(msg));
+            }
 
-            if (FD_ISSET(sd, &readfds)) {
-                char buf[30];
-                int nbytes = recv(sd, buf, 30, 0);
-                if (nbytes <= 0) {
-                    if (nbytes == 0) {
-                        close(i);
-                        clients[i] = 0;
+            int new_client, file;
+            if (FD_ISSET(listen_socket, &readfds))
+                new_client = create_new_connection(listen_socket);
+
+            // process_new_request(listen_socket, &readfds);
+
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                int sd = clients[i];
+
+                if (FD_ISSET(sd, &readfds)) {
+                    char buf[30];
+                    int nbytes = recv(sd, buf, 30, 0);
+                    buf[nbytes - 1] = '\0';
+                    if (nbytes <= 0) {
+                        if (nbytes == 0) {
+                            close(i);
+                            clients[i] = 0;
+                        }
+                        else
+                            perror("reading client request failed");
                     }
-                    else
-                        perror("reading client request failed");
-                }
-                else {
+                    else {
+                        int j;
+                        for (j = 0; j < 50 && buf[j] != ' '; j++);
+                        char* request = (char*)malloc(j+1);
+                        for (int k = 0; k < j; k++) {
+                            request[k] = buf[k];
+                        }
+                        request[j] = '\0';
 
-                    int j;
-                    for (j = 0; j < 40 && buf[j] != ' '; j++);
-                    char* request = (char*)malloc(j+1);
-                    char* file_name = (char*)malloc(nbytes - j);
-                    for (int k = 0; k < j; k++) {
-                        request[k] = buf[k];
-                    }
-                    for (int k = 0; k < nbytes - j - 1; k++) {
-                        file_name[k] = buf[j+1+k];
-                    }
+                        char* file_name = (char*)malloc(nbytes - j);
+                        for (int k = 0; k < nbytes - j - 1; k++) {
+                            file_name[k] = buf[j+1+k];
+                        }
+                        file_name[nbytes - j - 1] = '\0';
 
-                    if(strcmp(request, "download") == 0) {
-                        upload(clients[i], file_name);
-                    }
-                    else if(strcmp(request, "upload") == 0) {
-                        get_file(clients[i]);
-//                        add_file_to_files()
+//                        char* full_file_name;
+//                        find_full_name(file_name, FILE_DIR, &full_file_name);
+
+                        if(strcmp(request, "download") == 0) {
+                            file = server_hand_shake(clients[i], file_name, 0);
+//                            file = server_hand_shake(clients[i], "/home/amin/Desktop/p1-os/server/beej.html", 0);
+                            if (file < 0)
+                                printf("file did not open\n");
+                            upload(clients[i], file);
+                        }
+                        else if(strcmp(request, "upload") == 0) {
+                            file = server_hand_shake(clients[i], file_name, 1);
+                                download(clients[i], file);
+                            for (int i = 0; i < MAX_FILES; i++)
+                                if (files[i] == 0) {
+                                files[i] = file_name;
+                                break;
+                            }
+                        }
                     }
                 }
             }

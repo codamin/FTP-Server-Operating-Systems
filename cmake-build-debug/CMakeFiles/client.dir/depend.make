@@ -7,3 +7,5 @@ CMakeFiles/client.dir/client/client.c.o: ../client/client.h
 CMakeFiles/client.dir/client/main.c.o: ../client/client.h
 CMakeFiles/client.dir/client/main.c.o: ../client/main.c
 
+CMakeFiles/client.dir/tools/tools.c.o: ../tools/tools.c
+

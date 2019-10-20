@@ -156,6 +156,10 @@
 		<Unit filename="/home/amin/Desktop/p1-os/server/server.h">
 			<Option target="server"/>
 		</Unit>
+		<Unit filename="/home/amin/Desktop/p1-os/tools/tools.c">
+			<Option target="client"/>
+			<Option target="server"/>
+		</Unit>
 		<Unit filename="/home/amin/Desktop/p1-os/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

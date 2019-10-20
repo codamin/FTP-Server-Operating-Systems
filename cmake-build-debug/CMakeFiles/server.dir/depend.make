@@ -7,3 +7,5 @@ CMakeFiles/server.dir/server/main.c.o: ../server/server.h
 CMakeFiles/server.dir/server/server.c.o: ../server/server.c
 CMakeFiles/server.dir/server/server.c.o: ../server/server.h
 
+CMakeFiles/server.dir/tools/tools.c.o: ../tools/tools.c
+

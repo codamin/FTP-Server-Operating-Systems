@@ -6,6 +6,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_CHECK_C
   "/home/amin/Desktop/p1-os/client/client.c" "/home/amin/Desktop/p1-os/cmake-build-debug/CMakeFiles/client.dir/client/client.c.o"
   "/home/amin/Desktop/p1-os/client/main.c" "/home/amin/Desktop/p1-os/cmake-build-debug/CMakeFiles/client.dir/client/main.c.o"
+  "/home/amin/Desktop/p1-os/tools/tools.c" "/home/amin/Desktop/p1-os/cmake-build-debug/CMakeFiles/client.dir/tools/tools.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 
