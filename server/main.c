@@ -102,17 +102,15 @@ int main(int argc, char* argv[]) {
                         for (int k = 0; k < nbytes - j - 1; k++) {
                             file_name[k] = buf[j+1+k];
                         }
-                        file_name[nbytes - j - 1] = '\0';
+                        file_name[nbytes - j - 2] = '\0';
 
 //                        char* full_file_name;
 //                        find_full_name(file_name, FILE_DIR, &full_file_name);
 
                         if(strcmp(request, "download") == 0) {
                             file = server_hand_shake(clients[i], file_name, 0);
-//                            file = server_hand_shake(clients[i], "/home/amin/Desktop/p1-os/server/beej.html", 0);
-                            if (file < 0)
-                                printf("file did not open\n");
-                            upload(clients[i], file);
+                            if (file > 0)
+                                upload(clients[i], file);
                         }
                         else if(strcmp(request, "upload") == 0) {
                             file = server_hand_shake(clients[i], file_name, 1);

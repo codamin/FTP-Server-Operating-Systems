@@ -21,7 +21,8 @@
 #define FILE_DIR         "/home/amin/Desktop/p1-os/client/files/"
 #define NOT_FOUND        "file not found"
 #define MAX_HB_MSG_SIZE  4
-#define MAX_IO          3
+#define MAX_IO           3
+#define MAX_BC_MSG_SIZE  100 
 
 #endif
 

@@ -28,7 +28,7 @@ int read_hb_msg(int sock, struct sockaddr_in hb_addr, int* server_listen_port) {
     char buf[MAX_HB_MSG_SIZE];
     if ((nbytes = recvfrom(sock, buf, MAX_HB_MSG_SIZE, 0 ,(struct sockaddr *) &hb_addr, &len)) < 0)
         return -1;
-    char msg[] = "******************************************Server Found***********************************************";
+    char msg[] = "************************************Server Found**************************************\n";
     write(1, msg, sizeof(msg));
     *server_listen_port = atoi(buf);
     return 1;
@@ -134,6 +134,33 @@ void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name)
         exit(1);
     }
     else {
-        printf("msg broad casted......\n");
+        printf("msg broadcasted......\n");
     }
+}
+
+void create_socket_to_listen(struct sockaddr_in client_addr) {
+
+    int listen_socket;
+
+    if ((listen_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("openning socket failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int reuse = 1;
+    if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+
+    if (bind(listen_socket, (struct sockaddr *) &client_addr, sizeof(client_addr)) < 0) {
+        perror("\nBinding error...\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(listen_socket, 1) < 0) {
+        perror("Listen error...");
+        exit(EXIT_FAILURE);
+    }
+    return listen_socket;
 }
