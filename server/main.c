@@ -84,12 +84,12 @@ int main(int argc, char* argv[]) {
                     buf[nbytes] = '\0';
                     buflen = strlen(buf);
                     if (nbytes <= 0) {
-                        if (nbytes == 0) {
-                            close(i);
-                            clients[i] = 0;
-                        }
-                        else
-                            perror("reading client request failed");
+                        // if (nbytes == 0) {
+                        //     close(i);
+                        //     clients[i] = 0;
+                        // }
+                        // else
+                        //     perror("reading client request failed");
                     }
                     else {
                         int j;
