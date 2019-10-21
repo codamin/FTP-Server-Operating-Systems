@@ -17,7 +17,7 @@
 
 #define MAX_REQUEST_SIZE   100
 #define MAX_OWNED_FILES    10
-#define FILE_CHUNK_SIZE    256
+#define FILE_CHUNK_SIZE    512
 #define FILE_DIR           "/home/amin/Desktop/p1-os/client/files/"
 #define NOT_FOUND          "file not found"
 #define MAX_HB_MSG_SIZE    4
@@ -25,10 +25,6 @@
 #define MAX_BC_MSG_SIZE    100
 #define MAX_FILE_NAME_SIZE 30
 #define TOTAL_PORTS        65535
-
-
-
-
 
 int download(int sock, int file);
 void upload(int sock, int file);

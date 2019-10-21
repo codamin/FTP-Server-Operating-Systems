@@ -10,7 +10,7 @@
 #include "fcntl.h"
 
 #define NOT_FOUND           "file not found" 
-#define FILE_CHUNK_SIZE     256
+#define FILE_CHUNK_SIZE     512
 
 int download(int sock, int file) {
 
@@ -35,7 +35,7 @@ void upload(int sock, int file) {
     
     write(1, "sending file...\n", 16);
     while (1) {
-        char buf[FILE_CHUNK_SIZE] = {0};
+        char buf[FILE_CHUNK_SIZE];
         int nbytes = read(file, buf, FILE_CHUNK_SIZE);
         if(nbytes > 0) {
             write(sock, buf, nbytes);
