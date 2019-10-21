@@ -119,6 +119,7 @@ int main(int argc, char* argv[]) {
                 write(1, "new connection\n", sizeof("new connection\n"));
                 file = open(last_sec_scenario_sent_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
                 download(accepted_socket_for_recieving, file);
+                close(accepted_socket_for_recieving);
                 file_found = -1;
             }
         }        
