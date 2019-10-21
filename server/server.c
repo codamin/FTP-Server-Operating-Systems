@@ -59,7 +59,7 @@ int server_hand_shake(int sock, char* full_file_name, int mode) {
     // 1 for download --> just open ---> O_CREAT
     int fd;
     if (mode)
-        fd = open(full_file_name, O_CREAT | O_TRUNC | O_WRONLY, 777);
+        fd = open(full_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
     else if (!mode)
         fd = open(full_file_name, O_RDONLY);
 

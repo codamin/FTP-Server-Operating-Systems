@@ -24,12 +24,14 @@ int init_heart_beat_listen_socket(int hb_port) {
 
 int read_hb_msg(int sock, struct sockaddr_in hb_addr, int* server_listen_port) {
 
+
     int nbytes, len;
     char buf[MAX_HB_MSG_SIZE];
     if ((nbytes = recvfrom(sock, buf, MAX_HB_MSG_SIZE, 0 ,(struct sockaddr *) &hb_addr, &len)) < 0)
         return -1;
     char msg[] = "************************************Server Found**************************************\n";
     write(1, msg, sizeof(msg));
+
     *server_listen_port = atoi(buf);
     return 1;
 }
@@ -76,7 +78,7 @@ int connect_to_server(struct sockaddr_in client_addr, struct sockaddr_in server_
 }
 
 
-void send_request_to_server(int sock, char* buf, int nbytes, char* owned_files[]) {
+void send_request_to_server(int sock, char* buf, int buflen, char* owned_files[]) {
 
     int j;
     for (j = 0; j < 50 && buf[j] != ' '; j++);
@@ -126,9 +128,15 @@ int create_broadcast_socket(int bc_port, struct sockaddr_in* bc_addr) {
     return hb_sock;
 }
 
-void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name) {
+void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name, char* ss_listen_port) {
 
     int nbytes;
+    char request[30];
+    strcat(request, ss_listen_port);
+    strcat(request, " ");
+    strcat(request, file_name);
+
+    printf("here is request = %s\n", request);
     if ((nbytes = sendto(bc_sock, file_name, strlen(file_name), 0, (struct sockaddr *)&bc_addr, sizeof bc_addr)) < 0) {
         perror("sendto");
         exit(1);

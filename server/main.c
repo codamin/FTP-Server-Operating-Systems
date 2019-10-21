@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
         for(int i = 0; i < MAX_CLIENTS; i++)
             clients[i] = 0;
 
+        int buflen;
         while (1) {
 
             FD_ZERO(&readfds);
@@ -80,7 +81,8 @@ int main(int argc, char* argv[]) {
                 if (FD_ISSET(sd, &readfds)) {
                     char buf[30];
                     int nbytes = recv(sd, buf, 30, 0);
-                    buf[nbytes - 1] = '\0';
+                    buf[nbytes] = '\0';
+                    buflen = strlen(buf);
                     if (nbytes <= 0) {
                         if (nbytes == 0) {
                             close(i);
@@ -98,11 +100,10 @@ int main(int argc, char* argv[]) {
                         }
                         request[j] = '\0';
 
-                        char* file_name = (char*)malloc(nbytes - j);
-                        for (int k = 0; k < nbytes - j - 1; k++) {
-                            file_name[k] = buf[j+1+k];
+                        char* file_name = (char*)malloc(buflen - j);
+                        for (int k = 0; k < buflen - j; k++) {
+                            file_name[k] = buf[j + 1 + k];
                         }
-                        file_name[nbytes - j - 2] = '\0';
 
 //                        char* full_file_name;
 //                        find_full_name(file_name, FILE_DIR, &full_file_name);

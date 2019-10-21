@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
         printf("not ok \n");
     }
     
+    printf("here1\n");
 
     struct sockaddr_in server_addr, client_addr, hb_addr, bc_addr;
 
@@ -25,7 +26,7 @@ int main(int argc, char* argv[]) {
 
     client_addr.sin_family = AF_INET; 
     client_addr.sin_addr.s_addr = INADDR_ANY; 
-    client_addr.sin_port = htons(atoi(argv[3]));
+    client_addr.sin_port = htons(1500);//////////////////////////////////TO DO
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -59,8 +60,9 @@ int main(int argc, char* argv[]) {
         server_sock = connect_to_server(client_addr, server_addr);
     }
 
-    int listen_socket;
-
+    // int listen_socket = create_socket_to_listen(client_addr);
+    char* listen_port_for_second_scenario = "1500";
+    int buflen;
     while (1) {
 
         FD_ZERO(&readfds);
@@ -77,6 +79,7 @@ int main(int argc, char* argv[]) {
                 max_sd = sd;
         }
 
+
         int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
 
         if ((activity < 0) && (errno!=EINTR)) {
@@ -85,11 +88,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (FD_ISSET(io[0], &readfds)) {
+
             nbytes = read(0, buf, sizeof(buf));
-            buf[nbytes] = '\0';
+            buf[nbytes - 1] = '\0';
+            buflen = strlen(buf);
             if (is_server_alive) {
-                last_request = buf;
-                send_request_to_server(server_sock, buf, nbytes, owned_files);
+                send_request_to_server(server_sock, buf, buflen, owned_files);
             }
             else {
                 int j;
@@ -100,11 +104,11 @@ int main(int argc, char* argv[]) {
                 }
                 request[j] = '\0';
 
-                char* file_name = (char*)malloc(nbytes - j + 1);
+                char* file_name = (char*)malloc(nbytes - j);
                 for (int k = 0; k < nbytes - j; k++) {
                     file_name[k] = buf[j+1+k];
-                }
-                broadcast_request(bc_sock, bc_addr, file_name);
+                }                
+                broadcast_request(bc_sock, bc_addr, file_name, listen_port_for_second_scenario);
             }
         }
         
@@ -118,11 +122,10 @@ int main(int argc, char* argv[]) {
                 }
                 request[j] = '\0';
 
-                char* file_name = (char*)malloc(nbytes - j + 1);
-                for (int k = 0; k < nbytes - j; k++) {
+                char* file_name = (char*)malloc(buflen - j);
+                for (int k = 0; k < buflen - j; k++) {
                     file_name[k] = buf[j+1+k];
                 }
-                file_name[nbytes - j - 1] = '\0';
 
                 char ack[2];
                 nbytes = read(server_sock, ack, sizeof(ack));
@@ -131,8 +134,7 @@ int main(int argc, char* argv[]) {
                 // ack[2] = '\0';
                 if (!strcmp(ack, "NO")) {
                     printf("was not found in server\n");
-                    broadcast_request(bc_sock, bc_addr, file_name);
-                    listen_socket = create_socket_to_listen(client_addr);
+                    broadcast_request(bc_sock, bc_addr, file_name, listen_port_for_second_scenario);
                 }
                 else if (!strcmp(ack, "YD")) {
                     file = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
@@ -153,8 +155,7 @@ int main(int argc, char* argv[]) {
                 }
             }
             else {  //if server is not alive the massage is comming from a client for file
-
-
+                
             }
         }
 
@@ -165,8 +166,21 @@ int main(int argc, char* argv[]) {
             if ((nbytes = recvfrom(bc_sock, comming_req, MAX_BC_MSG_SIZE, 0, (struct sockaddr *) &from, &len)) < 0) {
                 printf("error in recv broadcast");
             }
-            comming_req[nbytes] = '\0';
-            printf("%s", comming_req);
+
+            int j;
+            for (j = 0; j < 50 && comming_req[j] != ' '; j++);
+            char* port = (char*)malloc(j+1);
+            for (int k = 0; k < j; k++) {
+                port[k] = comming_req[k];
+            }
+            port[j] = '\0';
+
+            char* file_name = (char*)malloc(nbytes - j + 1);
+            for (int k = 0; k < nbytes - j; k++) {
+                file_name[k] = comming_req[j+1+k];
+            }
+            file_name[nbytes - j - 1] = '\0';
+
             printf("sender port = %d\n" , ntohs(from.sin_port));
         }
     }
