@@ -82,6 +82,8 @@ int main(int argc, char* argv[]) {
     int sec_scenario_sock;
     int file_sender_sock;
 
+    int some_one_has_connected = 0;
+
     while (1) {
 
         FD_ZERO(&readfds);
@@ -110,8 +112,9 @@ int main(int argc, char* argv[]) {
         if (FD_ISSET(file_reciever_socket, &readfds)) {
             struct sockaddr_in new_client_address;
             int addrlen = sizeof new_client_address;
-            if ((accepted_socket_for_recieving = accept(file_reciever_socket, (struct sockaddr*) &new_client_address, (socklen_t*) &addrlen)) < 0) {
+            if ( !some_one_has_connected && (accepted_socket_for_recieving = accept(file_reciever_socket, (struct sockaddr*) &new_client_address, (socklen_t*) &addrlen)) < 0) {
                 char msg[] = "create_new_connection: creating new connection failed";
+                some_one_has_connected = 1;
                 write(1, msg, sizeof(msg));
                 exit(EXIT_FAILURE);
             }
@@ -120,6 +123,7 @@ int main(int argc, char* argv[]) {
                 file = open(last_sec_scenario_sent_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
                 download(accepted_socket_for_recieving, file);
                 close(accepted_socket_for_recieving);
+                some_one_has_connected = 0;
                 file_found = -1;
             }
         }        
@@ -224,8 +228,10 @@ int main(int argc, char* argv[]) {
                 other_reciever_addr.sin_addr.s_addr = INADDR_ANY;
                 other_reciever_addr.sin_port = atoi(port);
                 file_sender_sock = create_socket_to_send_file(file_sender_addr, other_reciever_addr);
-                upload(file_sender_sock, file);
-                close(file_sender_sock);///////////////////////////////
+                if (file_sender_sock < 0) {
+                    upload(file_sender_sock, file);
+                    close(file_sender_sock);///////////////////////////////
+                }
             }
         }
     }
