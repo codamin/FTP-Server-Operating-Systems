@@ -1,6 +1,6 @@
 all : client
 
-server : main.o client.o tools.o
+client : main.o client.o tools.o
 		gcc main.o client.o tools.o -o client
 
 main.o : main.c client.h

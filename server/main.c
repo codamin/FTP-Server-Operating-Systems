@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
                 perror("HeartBeat");
                 exit(1);
             }
-            printf("doop doop...\n");
+            write(1, "doop doop...\n", sizeof("doop doop...\n"));
             IsHeartBeating = false;
             alarm(1);
         }

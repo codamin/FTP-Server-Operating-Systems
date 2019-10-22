@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
             nbytes = read(server_sock, ack, sizeof(ack));
             if (!strcmp(ack, "NO")) {
                 file_found = 0;
-                printf("was not found in server\n");
+                write(1, "was not found in server\n", sizeof("was not found in server\n"));
 
                 strcpy(last_sec_scenario_sent_file_name, file_name);
                 for (int i = 0; i < strlen(file_name); i++) {
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
             int nbytes, len = sizeof from;
             char comming_req[MAX_BC_MSG_SIZE];
             if ((nbytes = recvfrom(bc_sock, comming_req, MAX_BC_MSG_SIZE, 0, (struct sockaddr *) &from, &len)) < 0) {
-                printf("error in recv broadcast");
+                write(1, "error in recv broadcast", sizeof("error in recv broadcast"));
             }
             comming_req[nbytes]='\0';
             int req_len = strlen(comming_req);

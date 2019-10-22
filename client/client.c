@@ -134,7 +134,7 @@ void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name,
     char request[40];
 
     char itos[10];
-    sprintf(itos, "%d", ss_listen_port);
+    itoa(ss_listen_port, itos, 10);
 
     for (int i = 0; i < strlen(itos); i++) {
         request[i] = itos[i];
@@ -146,17 +146,12 @@ void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name,
     }
     request[strlen(itos) + strlen(file_name) + 1] = '\0';
 
-//    strcat(request, itos);
-//    strcat(request, " ");
-//    strcat(request, file_name);
-
-    printf("here is request = %s\n", request);
     if ((nbytes = sendto(bc_sock, request, strlen(request), 0, (struct sockaddr *)&bc_addr, sizeof bc_addr)) < 0) {
         perror("sendto");
         exit(1);
     }
     else {
-        printf("msg broadcasted......\n");
+        write(1, "request broadcasted......\n", sizeof("request broadcasted......\n"));
     }
 }
 

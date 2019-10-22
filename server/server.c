@@ -26,30 +26,6 @@ int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr) {
     return hb_sock;
 }
 
-// void beat() {
-//     IsHeartBeating = true;
-// }
-
-// void heart_beat(int sock, struct sockaddr_in hb_addr) {
-
-//     int nbytes;
-//     char* char_port = "6000";
-
-//     signal(SIGALRM, beat);
-//     alarm(1);
-
-//     if (IsHeartBeating) {
-//         if ((nbytes = sendto(sock, char_port, strlen(char_port), 0, (struct sockaddr *)&hb_addr, sizeof hb_addr)) < 0)
-//         {
-//             perror("sendto");
-//             exit(1);
-//         }
-//         printf("doop doop...\n");
-//         IsHeartBeating = false;
-//         alarm(1);
-//     }
-// }
-
 int server_hand_shake(int sock, char* full_file_name, int mode) {
 
     // 0 for upload ----> must exist ---> O_RDONLY
@@ -62,10 +38,10 @@ int server_hand_shake(int sock, char* full_file_name, int mode) {
 
     if (fd < 0) {
         write(sock, "NO", 2);
-        write(1,"file not found\n", 25);
+        write(1,"file not found\n", 15);
         return -1;
     }
-    printf("file opened\n");
+
     if (mode)
         write(sock, "YU", 2);
     else
