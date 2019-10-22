@@ -128,6 +128,7 @@ int main(int argc, char* argv[]) {
                         if (file > 0)
                             upload(clients[i], file);
                     }
+
                     else if(strcmp(request, "upload") == 0) {
                         file = server_hand_shake(clients[i], file_name, 1);
                             download(clients[i], file);

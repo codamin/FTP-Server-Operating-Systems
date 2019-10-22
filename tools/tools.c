@@ -26,9 +26,9 @@ int download(int sock, int file) {
             break;
         }
     }
+
     close(file);
     write(1, "download finished\n", sizeof("download finished\n"));
-
 }
 
 void upload(int sock, int file) {

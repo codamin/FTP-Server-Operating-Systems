@@ -186,7 +186,7 @@ int create_socket_to_listen(struct sockaddr_in file_reciever_addr) {
         exit(EXIT_FAILURE);
     }
 
-    if (listen(listen_socket, 5) < 0) {
+    if (listen(listen_socket, 10) < 0) {
         perror("Listen error...");
         exit(EXIT_FAILURE);
     }

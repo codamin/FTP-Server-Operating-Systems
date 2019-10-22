@@ -12,8 +12,9 @@
 #include <sys/socket.h>  
 #include <netinet/in.h>  
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
-#include <time.h>   
-#include "fcntl.h"  
+#include <time.h>  
+#include <signal.h>
+#include <fcntl.h> 
 
 #define MAX_REQUEST_SIZE   100
 #define MAX_OWNED_FILES    10
@@ -40,5 +41,8 @@ int create_socket_to_listen(struct sockaddr_in file_reciever_addr);
 int create_socket_to_send_file(struct sockaddr_in file_sender_addr, struct sockaddr_in other_reciever_addr);
 
 int generate_random_port ();
+
+int broadcast_request_flag;
+
 #endif
 

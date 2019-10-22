@@ -1,5 +1,9 @@
 #include "client.h"
 
+void handle_reBroadCast_signal() {
+    broadcast_request_flag = 1;
+}
+
 int main(int argc, char* argv[]) {
 
     if (argc < 4) {
@@ -15,11 +19,11 @@ int main(int argc, char* argv[]) {
     
     client_addr.sin_family = AF_INET; 
     client_addr.sin_addr.s_addr = INADDR_ANY; 
-    client_addr.sin_port = htons(atoi(argv[3]));//////////////////////////////////TO DO
+    client_addr.sin_port = htons(atoi(argv[3]));
 
     file_sender_addr.sin_family = AF_INET;
     file_sender_addr.sin_addr.s_addr = INADDR_ANY;
-    file_sender_addr.sin_port = htons(3500);//////////////////////////////////////////////////////////
+    file_sender_addr.sin_port = htons(generate_random_port());
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -53,6 +57,11 @@ int main(int argc, char* argv[]) {
         server_addr.sin_port = htons(server_listen_port);
         server_sock = connect_to_server(client_addr, server_addr);
     }
+    else {
+
+        char msg[] = "************************************Server Not Found**************************************\n";
+        write(1, msg, sizeof(msg));
+    }
 
     file_reciever_addr.sin_family = AF_INET;
     file_reciever_addr.sin_addr.s_addr = INADDR_ANY;
@@ -60,6 +69,8 @@ int main(int argc, char* argv[]) {
     file_reciever_addr.sin_port = htons(random_port_for_listen);
 
     int file_reciever_socket = create_socket_to_listen(file_reciever_addr);
+
+    int file_sender_sock;
 
     char last_sec_scenario_sent_file_name[50];
 
@@ -71,17 +82,22 @@ int main(int argc, char* argv[]) {
 
     int accepted_socket_for_recieving;
     int sec_scenario_sock;
-    int file_sender_sock;
 
     int some_one_has_connected = 0;
 
-    int still_broadcast = -1;
+    int still_broadcast = 0;
+
+    signal(SIGALRM, handle_reBroadCast_signal);
+    alarm(1);
 
     while (1) {
 
-        // if(still_broadcast) {
-        //     broadcast_request(bc_sock, bc_addr, last_sec_scenario_sent_file_name, htons(random_port_for_listen));
-        // }
+        if (broadcast_request_flag && (still_broadcast == 1) ) {
+            some_one_has_connected = 0;
+            broadcast_request(bc_sock, bc_addr, last_sec_scenario_sent_file_name, htons(random_port_for_listen));
+            broadcast_request_flag = 0;
+            alarm(1);
+        }
 
         FD_ZERO(&readfds);
 
@@ -100,22 +116,21 @@ int main(int argc, char* argv[]) {
         // int activity = select(max_sd + 1, &readfds, NULL, NULL, &to);
         int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
 
-
-        if ((activity < 0) && (errno!=EINTR)) {
-            char msg[] = "select failed\n";
-            write(1, msg, sizeof(msg));
+        if ((activity < 0) && (errno == EINTR)) {
+            continue;
         }
 
-        if (FD_ISSET(file_reciever_socket, &readfds)) {
+        if (FD_ISSET(file_reciever_socket, &readfds)) {            
             struct sockaddr_in new_client_address;
             int addrlen = sizeof new_client_address;
-            if ( !some_one_has_connected && (accepted_socket_for_recieving = accept(file_reciever_socket, (struct sockaddr*) &new_client_address, (socklen_t*) &addrlen)) < 0) {
+            if ( (accepted_socket_for_recieving = accept(file_reciever_socket, (struct sockaddr*) &new_client_address, (socklen_t*) &addrlen)) < 0) {
                 char msg[] = "create_new_connection: creating new connection failed";
-                some_one_has_connected = 1;
                 write(1, msg, sizeof(msg));
                 exit(EXIT_FAILURE);
             }
-            else {
+            else if (!some_one_has_connected){
+                some_one_has_connected = 1;
+                write(accepted_socket_for_recieving, "Y", 1);
                 write(1, "new connection\n", sizeof("new connection\n"));
                 file = open(last_sec_scenario_sent_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
                 download(accepted_socket_for_recieving, file);
@@ -123,6 +138,12 @@ int main(int argc, char* argv[]) {
                 some_one_has_connected = 0;
                 file_found = -1;
             }
+            else {
+                write(accepted_socket_for_recieving, "N", 1);
+                // close(accepted_socket_for_recieving);
+            }
+            still_broadcast = 0;
+            
         }        
 
         if (FD_ISSET(io[0], &readfds)) {
@@ -151,8 +172,8 @@ int main(int argc, char* argv[]) {
                     last_sec_scenario_sent_file_name[i] = file_name[i];
                 }            
                 last_sec_scenario_sent_file_name[strlen(file_name)] = '\0';
-                still_broadcast = 0;
-                broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
+                still_broadcast = 1;
+                // broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
             }
         }
 
@@ -173,36 +194,35 @@ int main(int argc, char* argv[]) {
                 file_name[k] = buf[j+1+k];
             }
 
-            if (is_server_alive) {
-                char ack[2];
-                nbytes = read(server_sock, ack, sizeof(ack));
-                if (!strcmp(ack, "NO")) {
-                    file_found = 0;
-                    printf("was not found in server\n");
+            char ack[2];
+            nbytes = read(server_sock, ack, sizeof(ack));
+            if (!strcmp(ack, "NO")) {
+                file_found = 0;
+                printf("was not found in server\n");
 
-                    strcpy(last_sec_scenario_sent_file_name, file_name);
-                    for (int i = 0; i < strlen(file_name); i++) {
-                        last_sec_scenario_sent_file_name[i] = file_name[i];
-                    }  
-                    still_broadcast = 0;
-                    broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
+                strcpy(last_sec_scenario_sent_file_name, file_name);
+                for (int i = 0; i < strlen(file_name); i++) {
+                    last_sec_scenario_sent_file_name[i] = file_name[i];
                 }
-                else if (!strcmp(ack, "YD")) {
-                    file_found = 1;
-                    file = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-                    download(server_sock, file);
+                still_broadcast = 1;
+                broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
+            }
+            else if (!strcmp(ack, "YD")) {
+                file_found = 1;
+                file = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+                download(server_sock, file);
+            }
+            else if (!strcmp(ack, "YU")) {
+                file_found = 1;
+                file = open(file_name, O_RDONLY);
+                if (file < 0) {
+                    write(1, "file not found for upload\n", 26);
                 }
-                else if (!strcmp(ack, "YU")) {
-                    file_found = 1;
-                    file = open(file_name, O_RDONLY);
-                    if (file < 0) {
-                        write(1, "file not found for upload\n", 26);
-                    }
-                    else
-                        upload(server_sock, file);
+                else {
+                    upload(server_sock, file);
                 }
             }
-        }
+        } 
 
         if (FD_ISSET(bc_sock, &readfds)) {
             struct sockaddr_in from;
@@ -220,22 +240,32 @@ int main(int argc, char* argv[]) {
                 port[k] = comming_req[k];
             }
             port[j] = '\0';
+            
+            if (atoi(port) != htons(random_port_for_listen)) {
+                char* file_name = (char*)malloc(req_len - j);
+                for (int k = 0; k < req_len - j; k++) {
+                    file_name[k] = comming_req[j+1+k];
+                }
+                int file = open(file_name, O_RDONLY);
+                if (file < 0) 
+                    write(1, "file not found for upload\n", 26);
+                else {
+                    other_reciever_addr.sin_family = AF_INET;
+                    other_reciever_addr.sin_addr.s_addr = INADDR_ANY;
+                    other_reciever_addr.sin_port = atoi(port);
+                    file_sender_sock = create_socket_to_send_file(file_sender_addr, other_reciever_addr);
+                    if (file_sender_sock > 0) {
+                        char ack[1];
+                        int nbytes = read(file_sender_sock, ack, sizeof(ack));
 
-            char* file_name = (char*)malloc(req_len - j);
-            for (int k = 0; k < req_len - j; k++) {
-                file_name[k] = comming_req[j+1+k];
-            }
-            int file = open(file_name, O_RDONLY);
-            if (file < 0) 
-                write(1, "file not found for upload\n", 26);
-            else {
-                other_reciever_addr.sin_family = AF_INET;
-                other_reciever_addr.sin_addr.s_addr = INADDR_ANY;
-                other_reciever_addr.sin_port = atoi(port);
-                file_sender_sock = create_socket_to_send_file(file_sender_addr, other_reciever_addr);
-                if (file_sender_sock > 0) {
-                    upload(file_sender_sock, file);
-                    close(file_sender_sock);///////////////////////////////
+                        if (ack[0] == 'Y') {
+                            upload(file_sender_sock, file);
+                        }
+                        else {
+                            write(1, "not allowed for me!\n", sizeof("not allowed for me!\n"));
+                        }
+                        close(file_sender_sock);///////////////////////////////
+                    }
                 }
             }
         }
