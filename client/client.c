@@ -202,8 +202,7 @@ int create_socket_to_send_file(struct sockaddr_in file_sender_addr, struct socka
     }
 
     if (connect(sock, (struct sockaddr *)&other_reciever_addr, sizeof(other_reciever_addr)) < 0) { 
-        write(1, "\nConnect() failed %d %d\n", sizeof("\nConnect() failed %d %d\n"));
-        printf("%d", errno); 
+        write(1, "Connect() failed\n", sizeof("Connect() failed\n"));
         return -1; 
     }
     return sock;

@@ -4,8 +4,6 @@ void beat() {
     IsHeartBeating = true;
 }
 
-void process_new_request(int socket, fd_set *ptr);
-
 int main(int argc, char* argv[]) {
 
     struct sockaddr_in server_addr, client_addr, hb_addr;
@@ -37,11 +35,11 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
     int pid;
-//    int hb_port = atoi(argv[1]);
+
     int hb_sock;
 
 
-    hb_sock = create_heart_beat_socket(htons(10000), &hb_addr);
+    hb_sock = create_heart_beat_socket(htons(atoi(argv[1])), &hb_addr);
 
     fd_set readfds;
 

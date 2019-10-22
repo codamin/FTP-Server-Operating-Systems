@@ -40,7 +40,8 @@ void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name,
 int create_socket_to_listen(struct sockaddr_in file_reciever_addr);
 int create_socket_to_send_file(struct sockaddr_in file_sender_addr, struct sockaddr_in other_reciever_addr);
 
-int generate_random_port ();
+int generate_random_port();
+char* itoa(int num, char* str, int base); 
 
 int broadcast_request_flag;
 

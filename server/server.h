@@ -22,11 +22,15 @@
 #define NOT_FOUND           "file not found" 
 #define FILE_CHUNK_SIZE     512
 #define FILE_DIR            "/home/amin/Desktop/p1-os/server/files/"
-#define LISTEN_PORT         8000
 
 int clients[MAX_CLIENTS];
 char* files[MAX_FILES];
 bool IsHeartBeating;
 
+int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr);
+int server_hand_shake(int sock, char* full_file_name, int mode);
+int create_new_connection(int listen_socket);
+int download(int sock, int file);
+void upload(int sock, int file);
 
 #endif
