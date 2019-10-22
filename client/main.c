@@ -84,6 +84,8 @@ int main(int argc, char* argv[]) {
 
     int some_one_has_connected = 0;
 
+    int still_broadcast = -1;
+
     while (1) {
 
         FD_ZERO(&readfds);
@@ -159,28 +161,33 @@ int main(int argc, char* argv[]) {
         }
 
         if (is_server_alive && FD_ISSET(server_sock, &readfds)) {
+
+            char* request;
+            char* file_name;
+            int j;
+            for (j = 0; j < 50 && buf[j] != ' '; j++);
+            request = (char*)malloc(j+1);
+            for (int k = 0; k < j; k++) {
+                request[k] = buf[k];
+            }
+            request[j] = '\0';
+
+            file_name = (char*)malloc(buflen - j);
+            for (int k = 0; k < buflen - j; k++) {
+                file_name[k] = buf[j+1+k];
+            }
+
             if (is_server_alive) {
-                int j;
-                for (j = 0; j < 50 && buf[j] != ' '; j++);
-                char* request = (char*)malloc(j+1);
-                for (int k = 0; k < j; k++) {
-                    request[k] = buf[k];
-                }
-                request[j] = '\0';
-
-                char* file_name = (char*)malloc(buflen - j);
-                for (int k = 0; k < buflen - j; k++) {
-                    file_name[k] = buf[j+1+k];
-                }
-
                 char ack[2];
                 nbytes = read(server_sock, ack, sizeof(ack));
-                // if (nbytes < 2) handle exception
-                printf("1\n");
-                // ack[2] = '\0';
                 if (!strcmp(ack, "NO")) {
                     file_found = 0;
                     printf("was not found in server\n");
+
+                    strcpy(last_sec_scenario_sent_file_name, file_name);
+                    for (int i = 0; i < strlen(file_name); i++) {
+                        last_sec_scenario_sent_file_name[i] = file_name[i];
+                    }  
                     broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
                 }
                 else if (!strcmp(ack, "YD")) {
@@ -197,9 +204,6 @@ int main(int argc, char* argv[]) {
                     else
                         upload(server_sock, file);
                 }
-            }
-            else {  //if server is not alive the massage is comming from a client for file
-                
             }
         }
 
