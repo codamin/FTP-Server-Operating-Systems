@@ -17,23 +17,23 @@ int main(int argc, char* argv[]) {
     int listen_socket;
 
     if ((listen_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("openning socket failed\n");
+        write(1, "openning socket failed\n", sizeof("openning socket failed\n"));
         exit(EXIT_FAILURE);
     }
 
     int reuse = 1;
     if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse, sizeof(reuse)) < 0) {
-        perror("setsockopt");
+        write(1, "setsockopt\n", sizeof("setsockopt\n"));
         exit(EXIT_FAILURE);
     }
 
     if (bind(listen_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("\nBinding error...\n");
+        sizeof(1, "\nBinding error...\n", sizeof("\nBinding error...\n"));
         exit(EXIT_FAILURE);
     }
 
     if (listen(listen_socket, 5) < 0) {
-        perror("Listen error...");
+        write(1, "Listen error...\n", sizeof("Listen error...\n"));
         exit(EXIT_FAILURE);
     }
     int pid;
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
         
         if (IsHeartBeating) {
             if ((nbytes = sendto(hb_sock, char_port, strlen(char_port), 0, (struct sockaddr *)&hb_addr, sizeof hb_addr)) < 0) {
-                perror("HeartBeat");
+                write(1, "HeartBeat\n", sizeof("HeartBeat\n"));
                 exit(1);
             }
             write(1, "doop doop...\n", sizeof("doop doop...\n"));
@@ -102,12 +102,7 @@ int main(int argc, char* argv[]) {
                 buf[nbytes] = '\0';
                 buflen = strlen(buf);
                 if (nbytes <= 0) {
-                    // if (nbytes == 0) {
-                    //     close(i);
-                    //     clients[i] = 0;
-                    // }
-                    // else
-                    //     perror("reading client request failed");
+                    //
                 }
                 else {
                     int j;

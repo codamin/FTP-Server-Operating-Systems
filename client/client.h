@@ -2,7 +2,6 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <stdio.h>  
 #include <string.h>   //strlen  
 #include <stdlib.h>  
 #include <errno.h>  
@@ -15,6 +14,7 @@
 #include <time.h>  
 #include <signal.h>
 #include <fcntl.h> 
+#include <errno.h>
 
 #define MAX_REQUEST_SIZE   100
 #define MAX_OWNED_FILES    10

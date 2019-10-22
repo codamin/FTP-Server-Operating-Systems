@@ -83,20 +83,17 @@ int main(int argc, char* argv[]) {
     int accepted_socket_for_recieving;
     int sec_scenario_sock;
 
-    int some_one_has_connected = 0;
-
     int still_broadcast = 0;
 
     signal(SIGALRM, handle_reBroadCast_signal);
-    alarm(1);
+    alarm(2);
 
     while (1) {
 
-        if (broadcast_request_flag && (still_broadcast == 1) ) {
-            some_one_has_connected = 0;
+        if (broadcast_request_flag && still_broadcast) {
             broadcast_request(bc_sock, bc_addr, last_sec_scenario_sent_file_name, htons(random_port_for_listen));
             broadcast_request_flag = 0;
-            alarm(1);
+            alarm(2);
         }
 
         FD_ZERO(&readfds);
@@ -128,22 +125,19 @@ int main(int argc, char* argv[]) {
                 write(1, msg, sizeof(msg));
                 exit(EXIT_FAILURE);
             }
-            else if (!some_one_has_connected){
-                some_one_has_connected = 1;
+            else if (still_broadcast){
+                still_broadcast = 0;
                 write(accepted_socket_for_recieving, "Y", 1);
                 write(1, "new connection\n", sizeof("new connection\n"));
                 file = open(last_sec_scenario_sent_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
                 download(accepted_socket_for_recieving, file);
                 close(accepted_socket_for_recieving);
-                some_one_has_connected = 0;
                 file_found = -1;
             }
             else {
                 write(accepted_socket_for_recieving, "N", 1);
-                // close(accepted_socket_for_recieving);
+                close(accepted_socket_for_recieving);
             }
-            still_broadcast = 0;
-            
         }        
 
         if (FD_ISSET(io[0], &readfds)) {
@@ -205,7 +199,7 @@ int main(int argc, char* argv[]) {
                     last_sec_scenario_sent_file_name[i] = file_name[i];
                 }
                 still_broadcast = 1;
-                broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
+                // broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
             }
             else if (!strcmp(ack, "YD")) {
                 file_found = 1;
@@ -264,7 +258,7 @@ int main(int argc, char* argv[]) {
                         else {
                             write(1, "not allowed for me!\n", sizeof("not allowed for me!\n"));
                         }
-                        close(file_sender_sock);///////////////////////////////
+                        close(file_sender_sock);
                     }
                 }
             }

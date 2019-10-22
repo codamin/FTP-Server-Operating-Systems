@@ -4,7 +4,7 @@ int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr) {
 
     int hb_sock;
     if ((hb_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("creating heart beat socket failed");
+        write(1, "creating heart beat socket failed\n", sizeof("creating heart beat socket failed\n"));
         exit(EXIT_FAILURE);
     }
 
@@ -14,11 +14,11 @@ int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr) {
 
     int reuse = 1;
     if (setsockopt(hb_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
+        write(1, "setsockopt(SO_REUSEADDR) failed", sizeof("setsockopt(SO_REUSEADDR) failed"));
 
     int broadcast = 1;
     if (setsockopt(hb_sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
-        perror("setsockopt (SO_BROADCAST)");
+        write(1, "setsockopt (SO_BROADCAST)", sizeof("setsockopt (SO_BROADCAST)"));
         exit(1);
     }
 

@@ -5,16 +5,16 @@ int init_heart_beat_listen_socket(int hb_port) {
     int sock;
     
     if((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("udp socket");
+        write(1, "udp socket", sizeof("udp socket"));
         exit(EXIT_FAILURE);
     }
     int reuse = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
+        write(1, "setsockopt(SO_REUSEADDR) failed", sizeof("setsockopt(SO_REUSEADDR) failed"));
  
     int broadcast = 1;
     if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
-        perror("setsockopt (SO_BROADCAST)");
+        write(1, "setsockopt (SO_BROADCAST)", sizeof("setsockopt (SO_BROADCAST)"));
         exit(EXIT_FAILURE);
     }
     struct timeval timeout={2, 0};
@@ -58,20 +58,20 @@ int connect_to_server(struct sockaddr_in client_addr, struct sockaddr_in server_
     int sock;
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Failed to open socket");
+        write(1, "Failed to open socket", sizeof("Failed to open socket"));
     }
 
     int reuse = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0) 
-        perror("setsockopt(SO_REUSEPORT) failed");
+        write(1, "setsockopt(SO_REUSEPORT) failed\n", sizeof("setsockopt(SO_REUSEPORT) failed\n"));
 
     if (bind(sock, (struct sockaddr*) &client_addr, sizeof(struct sockaddr_in)) < 0) {
-        perror("\nclient socket binding failed\n");
+        write(1, "client socket binding failed\n", sizeof("client socket binding failed\n"));
         exit(EXIT_FAILURE); 
     }
 
     if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) { 
-        perror("\nConnect() failed \n"); 
+        write(1, "Connect() failed \n", sizeof("Connect() failed \n")); 
         return -1; 
     }
     return sock;
@@ -106,7 +106,7 @@ int create_broadcast_socket(int bc_port, struct sockaddr_in* bc_addr) {
 
     int bc_sock;
     if ((bc_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("creating heart beat socket failed");
+        write(1, "creating heart beat socket failed", sizeof("creating heart beat socket failed"));
         exit(EXIT_FAILURE);
     }
 
@@ -116,11 +116,11 @@ int create_broadcast_socket(int bc_port, struct sockaddr_in* bc_addr) {
 
     int reuse = 1;
     if (setsockopt(bc_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
+        write(1, "setsockopt(SO_REUSEADDR) failed", sizeof("setsockopt(SO_REUSEADDR) failed"));
 
     int broadcast = 1;
     if (setsockopt(bc_sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) < 0) {
-        perror("setsockopt (SO_BROADCAST)");
+        write(1, "setsockopt (SO_BROADCAST)", sizeof("setsockopt (SO_BROADCAST)"));
         exit(1);
     }
 
@@ -147,7 +147,7 @@ void broadcast_request(int bc_sock, struct sockaddr_in bc_addr, char* file_name,
     request[strlen(itos) + strlen(file_name) + 1] = '\0';
 
     if ((nbytes = sendto(bc_sock, request, strlen(request), 0, (struct sockaddr *)&bc_addr, sizeof bc_addr)) < 0) {
-        perror("sendto");
+        write(1, "sendto", sizeof("sendto"));
         exit(1);
     }
     else {
@@ -160,29 +160,23 @@ int create_socket_to_listen(struct sockaddr_in file_reciever_addr) {
     int listen_socket;
 
     if ((listen_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("openning socket failed\n");
+        write(1, "openning socket failed\n", sizeof("openning socket failed\n"));
         exit(EXIT_FAILURE);
     }
 
     int reuse = 1;
     if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse, sizeof(reuse)) < 0) {
-        perror("setsockopt");
+        write(1, "setsockopt", sizeof("setsockopt"));
         exit(EXIT_FAILURE);
     }
 
-    // int reuse2 = 1;
-    // if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse2, sizeof(reuse2)) < 0) {
-    //     perror("setsockopt");
-    //     exit(EXIT_FAILURE);
-    // }
-
     if (bind(listen_socket, (struct sockaddr *) &file_reciever_addr, sizeof(file_reciever_addr)) < 0) {
-        perror("\nBinding error...\n");
+        write(1, "\nBinding error...\n", sizeof("\nBinding error...\n"));
         exit(EXIT_FAILURE);
     }
 
     if (listen(listen_socket, 10) < 0) {
-        perror("Listen error...");
+        write(1, "Listen error...\n", sizeof("Listen error...\n"));
         exit(EXIT_FAILURE);
     }
     return listen_socket;
@@ -193,22 +187,23 @@ int create_socket_to_send_file(struct sockaddr_in file_sender_addr, struct socka
 
     int sock;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Failed to open socket");
+        write(1, "Failed to open socket", sizeof("Failed to open socket"));
     }
 
     int reuse = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0) 
-        perror("setsockopt(SO_REUSEPORT) failed");
+        write(1, "setsockopt(SO_REUSEPORT) failed", sizeof("setsockopt(SO_REUSEPORT) failed"));
     int reuse2 = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse2, sizeof(reuse2)) < 0)
-        perror("setsockopt(SO_REUSEPORT) failed");
+        write(1, "setsockopt(SO_REUSEADDR) failed", sizeof("setsockopt(SO_REUSEADDR) failed"));
     if (bind(sock, (struct sockaddr*) &file_sender_addr, sizeof(file_sender_addr)) < 0) {
-        perror("\nclient socket binding failed\n");
+        write(1, "\nclient socket binding failed\n", sizeof("\nclient socket binding failed\n"));
         exit(EXIT_FAILURE); 
     }
 
     if (connect(sock, (struct sockaddr *)&other_reciever_addr, sizeof(other_reciever_addr)) < 0) { 
-        perror("\nConnect() failed \n"); 
+        write(1, "\nConnect() failed %d %d\n", sizeof("\nConnect() failed %d %d\n"));
+        printf("%d", errno); 
         return -1; 
     }
     return sock;
