@@ -26,32 +26,29 @@ int create_heart_beat_socket(int hb_port, struct sockaddr_in* hb_addr) {
     return hb_sock;
 }
 
-void beat() {
-    IsHeartBeating = true;
-}
+// void beat() {
+//     IsHeartBeating = true;
+// }
 
-void heart_beat(int sock, struct sockaddr_in hb_addr) {
+// void heart_beat(int sock, struct sockaddr_in hb_addr) {
 
-    int nbytes;
-    char* char_port = "6000";
+//     int nbytes;
+//     char* char_port = "6000";
 
-    signal(SIGALRM, beat);
-    alarm(1);
+//     signal(SIGALRM, beat);
+//     alarm(1);
 
-    for (;;) {
-        if (IsHeartBeating) {
-//            costum_itoa(LISTEN_PORT, &char_port);
-            if ((nbytes = sendto(sock, char_port, strlen(char_port), 0, (struct sockaddr *)&hb_addr, sizeof hb_addr)) < 0)
-            {
-                perror("sendto");
-                exit(1);
-            }
-            printf("doop doop...\n");
-            IsHeartBeating = false;
-            alarm(1);
-        }
-    }
-}
+//     if (IsHeartBeating) {
+//         if ((nbytes = sendto(sock, char_port, strlen(char_port), 0, (struct sockaddr *)&hb_addr, sizeof hb_addr)) < 0)
+//         {
+//             perror("sendto");
+//             exit(1);
+//         }
+//         printf("doop doop...\n");
+//         IsHeartBeating = false;
+//         alarm(1);
+//     }
+// }
 
 int server_hand_shake(int sock, char* full_file_name, int mode) {
 

@@ -175,11 +175,11 @@ int create_socket_to_listen(struct sockaddr_in file_reciever_addr) {
         exit(EXIT_FAILURE);
     }
 
-    int reuse2 = 1;
-    if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse2, sizeof(reuse2)) < 0) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
+    // int reuse2 = 1;
+    // if (setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, (char *)&reuse2, sizeof(reuse2)) < 0) {
+    //     perror("setsockopt");
+    //     exit(EXIT_FAILURE);
+    // }
 
     if (bind(listen_socket, (struct sockaddr *) &file_reciever_addr, sizeof(file_reciever_addr)) < 0) {
         perror("\nBinding error...\n");

@@ -6,16 +6,7 @@ int main(int argc, char* argv[]) {
         write (1, "Not enough arguments\n", sizeof("Not enough arguments\n"));
         exit(EXIT_FAILURE);
     }
-
-    if (open("beej.html\n", O_RDONLY) > 0) {
-        printf("ok\n");
-    }
-    else
-    {
-        printf("not ok \n");
-    }
-    
-    printf("here1\n");
+    struct timespec start,end;
 
     struct sockaddr_in server_addr, client_addr, hb_addr, bc_addr, file_sender_addr, file_reciever_addr, other_reciever_addr;
 
@@ -88,6 +79,10 @@ int main(int argc, char* argv[]) {
 
     while (1) {
 
+        // if(still_broadcast) {
+        //     broadcast_request(bc_sock, bc_addr, last_sec_scenario_sent_file_name, htons(random_port_for_listen));
+        // }
+
         FD_ZERO(&readfds);
 
         if (is_server_alive)
@@ -156,6 +151,7 @@ int main(int argc, char* argv[]) {
                     last_sec_scenario_sent_file_name[i] = file_name[i];
                 }            
                 last_sec_scenario_sent_file_name[strlen(file_name)] = '\0';
+                still_broadcast = 0;
                 broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
             }
         }
@@ -188,6 +184,7 @@ int main(int argc, char* argv[]) {
                     for (int i = 0; i < strlen(file_name); i++) {
                         last_sec_scenario_sent_file_name[i] = file_name[i];
                     }  
+                    still_broadcast = 0;
                     broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
                 }
                 else if (!strcmp(ack, "YD")) {
