@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
     int file_reciever_socket = create_socket_to_listen(file_reciever_addr);
 
-    char* last_sec_scenario_sent_file_name;
+    char last_sec_scenario_sent_file_name[50];
 
     int buflen;
     io[0] = 0;
@@ -149,7 +149,11 @@ int main(int argc, char* argv[]) {
                 for (int k = 0; k < buflen - j; k++) {
                     file_name[k] = buf[j+1+k];
                 }
-                last_sec_scenario_sent_file_name = file_name;               
+                strcpy(last_sec_scenario_sent_file_name, file_name);
+                for (int i = 0; i < strlen(file_name); i++) {
+                    last_sec_scenario_sent_file_name[i] = file_name[i];
+                }            
+                last_sec_scenario_sent_file_name[strlen(file_name)] = '\0';
                 broadcast_request(bc_sock, bc_addr, file_name, htons(random_port_for_listen));
             }
         }
@@ -228,7 +232,7 @@ int main(int argc, char* argv[]) {
                 other_reciever_addr.sin_addr.s_addr = INADDR_ANY;
                 other_reciever_addr.sin_port = atoi(port);
                 file_sender_sock = create_socket_to_send_file(file_sender_addr, other_reciever_addr);
-                if (file_sender_sock < 0) {
+                if (file_sender_sock > 0) {
                     upload(file_sender_sock, file);
                     close(file_sender_sock);///////////////////////////////
                 }
